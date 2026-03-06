@@ -1,16 +1,43 @@
-# my_first_app
+# 🎮 GameStack: Swipe & Play
 
-A new Flutter project.
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev/)
+[![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev/)
+[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Google Play](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=YOUR_APP_ID_HERE)
 
-## Getting Started
+An AI-assisted, infinite-scroll mini-game feed application built with Flutter. **GameStack** re-imagines mobile casual gaming by delivering a TikTok-style, seamless vertical scrolling experience where users can instantly discover and play a variety of hyper-casual mini-games.
 
-This project is a starting point for a Flutter application.
+Currently live on the Google Play Store with **1,000+ organic downloads**.
 
-A few resources to get you started if this is your first Flutter project:
+## ✨ Key Features
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+* 📱 **Infinite Scroll UI:** A highly optimized, TikTok-style vertical feed allowing users to swipe through games without loading screens.
+* 🤖 **AI-Assisted Development:** The core logic, mechanics, and design of the interactive mini-games were rapidly prototyped and coded leveraging Large Language Models (LLMs).
+* ⚡ **Frictionless Onboarding:** Auto-login implementation to eliminate bounce rates and maximize immediate gameplay engagement.
+* 📈 **Data-Driven Insights:** Integrated **Firebase Analytics** and **Crashlytics** to monitor Daily Active Users (DAU), retention rates, and app stability.
+* 💰 **Dynamic Monetization:** **Google AdMob** integration tailored for hyper-casual session lengths, utilizing **Firebase Remote Config** to adjust ad-display intervals on the fly without requiring app updates.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🛠️ Tech Stack
+
+* **Frontend:** Flutter, Dart
+* **Backend & Analytics:** Firebase (Analytics, Crashlytics, Remote Config)
+* **Monetization:** Google AdMob
+* **AI Integration:** Prompt Engineering (LLMs) for rapid game prototyping
+
+## 🚀 Live Demo
+
+You can download and test the production version of the app directly from the Google Play Store:
+> [Download GameStack on Google Play](#) *(Replace this # with your actual Play Store link)*
+
+## 📸 Screenshots / Gameplay
+*(Insert a GIF or screenshots here showing the swipe mechanic and a few mini-games. A GIF of the infinite scroll is highly recommended!)*
+
+<p align="center">
+  <img src="link_to_screenshot_1" width="250" />
+  <img src="link_to_screenshot_2" width="250" />
+  <img src="link_to_screenshot_3" width="250" />
+</p>
+
+## 👨‍💻 Developer
+
+Developed end-to-end by a solo AI Engineer.

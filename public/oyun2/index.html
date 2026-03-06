@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hızlı Tıklama</title>
+    <style>
+        body { background-color: #ff5722; color: white; font-family: sans-serif; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100vh; margin: 0; }
+        button { padding: 20px 40px; font-size: 24px; background: white; color: #ff5722; border: none; border-radius: 50%; width: 150px; height: 150px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>HIZLI TIKLA!</h1>
+    <p>Skorun: <span id="skor">0</span></p>
+    <button onclick="arttir()">TIKLA</button>
+    <script>
+        let puan = 0;
+        function arttir() {
+            puan++;
+            document.getElementById('skor').innerText = puan;
+
+            document.body.style.backgroundColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+        }
+    </script>
+</body>
+</html>
+

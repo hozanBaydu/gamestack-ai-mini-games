@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Araba Yarışı V2</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #333;
+            touch-action: none;
+            font-family: 'Arial', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-color: #555;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #uiLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #scoreBoard {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        #startMsg {
+            position: absolute;
+            top: 40%;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px black;
+            animation: blink 1s infinite;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #gameOverScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            pointer-events: auto;
+            border: 2px solid white;
+            z-index: 20;
+            min-width: 250px;
+        }
+
+        button {
+            background-color: #e74c3c;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-sizing: border-box;
+            pointer-events: auto;
+        }
+
+        .control-btn {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .control-btn:active {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+
+        @keyframes blink { 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+<div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    <div id="startMsg">BAŞLAMAK İÇİN<br>EKRANA DOKUN</div>
+
+    <div id="uiLayer">
+        <div id="scoreBoard">Skor: 0</div>
+        <div id="controls">
+            <div id="btnLeft" class="control-btn">◀</div>
+            <div id="btnRight" class="control-btn">▶</div>
+        </div>
+    </div>
+
+    <div id="gameOverScreen">
+        <h2 style="color:#ff5555; margin:0 0 10px 0;">KAZA!</h2>
+        <p>Skorun: <span id="finalScore">0</span></p>
+        <button id="restartBtn">Tekrar Oyna</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('scoreBoard');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const finalScoreEl = document.getElementById('finalScore');
+    const startMsg = document.getElementById('startMsg');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let isGameOver = true;
+    let score = 0;
+    let gameSpeed = 5;
+    let roadWidth = 320;
+    let roadX = 0;
+    let animationId;
+
+    const carWidth = 50;
+    const carHeight = 80;
+    const player = { x: 0, y: 0, speed: 7 };
+    let enemies = [];
+    let spawnCounter = 0;
+    let lineOffset = 0;
+
+    let leftPressed = false;
+    let rightPressed = false;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        if(canvas.width < 500) {
+            roadWidth = canvas.width - 20;
+        } else {
+            roadWidth = 400;
+        }
+        roadX = (canvas.width - roadWidth) / 2;
+
+        if(isGameOver) {
+            player.x = canvas.width / 2 - carWidth / 2;
+            player.y = canvas.height - 150;
+        }
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // --- KONTROL EVENTLERİ (Geliştirildi) ---
+    const btnLeft = document.getElementById('btnLeft');
+    const btnRight = document.getElementById('btnRight');
+
+    // Mobilde basılı tutmayı algılamak için
+    function handleLeft(state) { leftPressed = state; }
+    function handleRight(state) { rightPressed = state; }
+
+    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); handleLeft(true); });
+    btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); handleLeft(false); });
+
+    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); handleRight(true); });
+    btnRight.addEventListener('touchend', (e) => { e.preventDefault(); handleRight(false); });
+
+    // Masaüstü test için mouse eventleri
+    btnLeft.addEventListener('mousedown', () => handleLeft(true));
+    btnLeft.addEventListener('mouseup', () => handleLeft(false));
+    btnRight.addEventListener('mousedown', () => handleRight(true));
+    btnRight.addEventListener('mouseup', () => handleRight(false));
+
+    // --- OYUN BAŞLATMA ---
+    // Sorunu çözen kısım: Tıklamayı tüm container'dan dinliyoruz
+    const gameContainer = document.getElementById('gameContainer');
+
+    function tryStartGame() {
+        if (isGameOver && gameOverScreen.style.display === 'none') {
+            startGame();
+        }
+    }
+
+    gameContainer.addEventListener('click', tryStartGame);
+    gameContainer.addEventListener('touchstart', tryStartGame);
+
+    restartBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Butona basınca container tıklamasını engelle
+        resetGameUI();
+        startGame();
+    });
+
+    restartBtn.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        resetGameUI();
+        startGame();
+    });
+
+    function resetGameUI() {
+        gameOverScreen.style.display = 'none';
+    }
+
+    function startGame() {
+        isGameOver = false;
+        score = 0;
+        gameSpeed = 5;
+        enemies = [];
+        spawnCounter = 0;
+
+        startMsg.style.display = 'none';
+        scoreEl.innerText = "Skor: 0";
+
+        player.x = canvas.width / 2 - carWidth / 2;
+        player.y = canvas.height - 150;
+
+        if (animationId) cancelAnimationFrame(animationId);
+        gameLoop();
+    }
+
+    function spawnEnemy() {
+        // Yolu 3 şeride böl
+        const laneCount = 3;
+        const laneWidth = roadWidth / laneCount;
+        const randomLane = Math.floor(Math.random() * laneCount);
+
+        const enemyX = roadX + (randomLane * laneWidth) + (laneWidth - carWidth) / 2;
+
+        enemies.push({
+            x: enemyX,
+            y: -100,
+            width: carWidth,
+            height: carHeight,
+            color: '#' + Math.floor(Math.random()*16777215).toString(16) // Rastgele renk
+        });
+    }
+
+    function update() {
+        if (isGameOver) return;
+
+        // Hızlanma
+        gameSpeed += 0.002;
+        score += 0.1;
+        scoreEl.innerText = "Skor: " + Math.floor(score);
+
+        // Oyuncu Hareket
+        if (leftPressed) player.x -= player.speed;
+        if (rightPressed) player.x += player.speed;
+
+        // Sınırlar
+        if (player.x < roadX) player.x = roadX;
+        if (player.x + carWidth > roadX + roadWidth) player.x = roadX + roadWidth - carWidth;
+
+        // Çizgi Animasyonu
+        lineOffset += gameSpeed;
+        if (lineOffset > 40) lineOffset = 0;
+
+        // Düşman Oluşturma
+        spawnCounter++;
+        // Hız arttıkça daha sık gelsinler ama çok da abartmasın
+        if (spawnCounter > 1000 / (gameSpeed * 1.5)) {
+            spawnEnemy();
+            spawnCounter = 0;
+        }
+
+        for (let i = 0; i < enemies.length; i++) {
+            let e = enemies[i];
+            e.y += gameSpeed;
+
+            if (
+                player.x < e.x + e.width &&
+                player.x + carWidth > e.x &&
+                player.y < e.y + e.height &&
+                player.y + carHeight > e.y
+            ) {
+                gameOver();
+                return;
+            }
+
+            if (e.y > canvas.height) {
+                enemies.splice(i, 1);
+                i--;
+            }
+        }
+    }
+
+    function draw() {
+
+        ctx.fillStyle = '#27ae60';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#555';
+        ctx.fillRect(roadX, 0, roadWidth, canvas.height);
+
+        ctx.fillStyle = 'white';
+        const laneW = roadWidth / 3;
+        for(let i=1; i<3; i++) {
+            let lx = roadX + i * laneW;
+            for(let y = -50 + lineOffset; y < canvas.height; y += 40) {
+                ctx.fillRect(lx - 2, y, 4, 20);
+            }
+        }
+
+        // Yol Kenarları
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(roadX-5, 0, 5, canvas.height);
+        ctx.fillRect(roadX+roadWidth, 0, 5, canvas.height);
+
+        // Oyuncu (Mavi)
+        drawCar(player.x, player.y, '#3498db');
+
+        // Düşmanlar
+        enemies.forEach(e => drawCar(e.x, e.y, '#e74c3c'));
+    }
+
+    function drawCar(x, y, color) {
+        ctx.fillStyle = color;
+        // Gölge
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 10;
+        ctx.fillRect(x, y, carWidth, carHeight);
+        ctx.shadowBlur = 0;
+
+        // Detaylar
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(x + 5, y + 10, carWidth - 10, 15); // Ön cam
+        ctx.fillRect(x + 5, y + 55, carWidth - 10, 10); // Arka cam
+
+        // Tekerlekler
+        ctx.fillStyle = 'black';
+        ctx.fillRect(x - 2, y + 10, 4, 15);
+        ctx.fillRect(x + carWidth - 2, y + 10, 4, 15);
+        ctx.fillRect(x - 2, y + 55, 4, 15);
+        ctx.fillRect(x + carWidth - 2, y + 55, 4, 15);
+    }
+
+    function gameOver() {
+        isGameOver = true;
+        gameOverScreen.style.display = 'block';
+        finalScoreEl.innerText = Math.floor(score);
+    }
+
+    function gameLoop() {
+        if (!isGameOver) {
+            update();
+            draw();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+    }
+
+    // İlk çizim
+    resize();
+    draw();
+
+</script>
+</body>
+</html>
+

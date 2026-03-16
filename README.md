@@ -43,3 +43,4 @@ You can download and test the production version of the app directly from the Go
 ## 👨‍💻 Developer
 
 Hozan Baydu
+mail=hozan.baydu123@gmail.com
